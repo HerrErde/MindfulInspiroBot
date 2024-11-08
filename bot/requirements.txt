@@ -1,0 +1,7 @@
+aiohttp==3.10.10
+atproto==0.0.55
+Pillow==11.0.0
+python-dotenv==1.0.1
+pytz==2024.2
+Requests==2.32.3
+tweepy==4.14.0

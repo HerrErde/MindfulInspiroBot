@@ -1,0 +1,6 @@
+*.env
+*.jpg
+__pycache__
+.venv
+
+inspirobot_cache.json
