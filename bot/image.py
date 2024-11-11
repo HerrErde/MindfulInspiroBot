@@ -93,24 +93,34 @@ def resize(input_image_path, output_image_path):
         cropped_image.save(output_image_path)
 
 
-def wrap_text(text, font, image_width):
-    """Wrap text to fit within a maximum width."""
+def wrap_text(text, font, image_width, first_ratio=0.85, other_ratio=0.75):
+    """Wrap text to fit within a maximum width with the first line slightly longer than others."""
     lines = []
     words = text.split()
     if not words:
         return lines
 
+    # Set max width for the first and other lines
+    first_line_width = image_width * first_ratio
+    other_lines_width = image_width * other_ratio
+
     current_line = words[0]
+    is_first_line = True
+
     for word in words[1:]:
         test_line = current_line + " " + word
         width, _ = textsize(test_line, font)
-        if width <= image_width:
+
+        # Check if the line width exceeds the appropriate max width
+        max_width = first_line_width if is_first_line else other_lines_width
+        if width <= max_width:
             current_line = test_line
         else:
             lines.append(current_line)
             current_line = word
-    lines.append(current_line)
+            is_first_line = False
 
+    lines.append(current_line)
     return lines
 
 
