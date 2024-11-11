@@ -1,5 +1,6 @@
 import os
 import random
+import re
 
 from PIL import Image, ImageDraw, ImageFont, ImageStat
 
@@ -93,34 +94,65 @@ def resize(input_image_path, output_image_path):
         cropped_image.save(output_image_path)
 
 
+def split_sentences(text):
+    # Split text into sentences
+    sentences = re.split(r"(?<=\.)\s+", text)
+    return sentences
+
+
 def wrap_text(text, font, image_width, first_ratio=0.85, other_ratio=0.75):
     """Wrap text to fit within a maximum width with the first line slightly longer than others."""
+    # Split the text into sentences
+    sentences = split_sentences(text)
+
     lines = []
     words = text.split()
     if not words:
         return lines
 
-    # Set max width for the first and other lines
-    first_line_width = image_width * first_ratio
-    other_lines_width = image_width * other_ratio
+    if len(sentences) >= 2:
+        for sentence in sentences:
+            # Calculate the width of the entire sentence
+            width, _ = textsize(sentence, font)
 
-    current_line = words[0]
-    is_first_line = True
+            # If the sentence width is within the image width, add it directly as a line
+            if width <= image_width:
+                lines.append(sentence)
+            else:
+                # Otherwise, apply word-wrapping within this sentence
+                current_line = ""
+                for word in sentence.split():
+                    test_line = f"{current_line} {word}".strip()
+                    line_width, _ = textsize(test_line, font)
+                    if line_width <= image_width:
+                        current_line = test_line
+                    else:
+                        lines.append(current_line)
+                        current_line = word
+                if current_line:
+                    lines.append(current_line)
+    else:
+        # Set max width for the first and other lines
+        first_line_width = image_width * first_ratio
+        other_lines_width = image_width * other_ratio
 
-    for word in words[1:]:
-        test_line = current_line + " " + word
-        width, _ = textsize(test_line, font)
+        current_line = words[0]
+        is_first_line = True
 
-        # Check if the line width exceeds the appropriate max width
-        max_width = first_line_width if is_first_line else other_lines_width
-        if width <= max_width:
-            current_line = test_line
-        else:
-            lines.append(current_line)
-            current_line = word
-            is_first_line = False
+        for word in words[1:]:
+            test_line = current_line + " " + word
+            width, _ = textsize(test_line, font)
 
-    lines.append(current_line)
+            # Check if the line width exceeds the appropriate max width
+            max_width = first_line_width if is_first_line else other_lines_width
+            if width <= max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+                is_first_line = False
+
+        lines.append(current_line)
     return lines
 
 
